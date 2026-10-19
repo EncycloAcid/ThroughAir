@@ -7,10 +7,10 @@ export interface MapPoint {
 
 /** Walking line from the north checkpoint up through the terminal to Concourse A. */
 export const ROUTE: MapPoint[] = [
-  { id: 'tsa', name: 'TSA North checkpoint', x: 198, y: 608 },
-  { id: 'main', name: 'Main terminal', x: 190, y: 458 },
-  { id: 'food', name: 'Food court', x: 206, y: 292 },
-  { id: 'a', name: 'Concourse A', x: 196, y: 148 },
+  { id: 'tsa', name: 'TSA North checkpoint', x: 192, y: 252 },
+  { id: 'main', name: 'Main terminal', x: 190, y: 230 },
+  { id: 'food', name: 'Food court', x: 188, y: 208 },
+  { id: 'a', name: 'Concourse A', x: 186, y: 176 },
 ]
 
 export const LEGS = [
@@ -24,15 +24,15 @@ export const WALK_METERS_PER_MIN = 72
 export const FLOW: Array<[number, number]> = ROUTE.map((point) => [point.x, point.y])
 
 export const FLOW_B: Array<[number, number]> = [
-  [190, 430],
-  [140, 360],
-  [86, 312],
+  [188, 220],
+  [165, 218],
+  [142, 216],
 ]
 
 export const FLOW_C: Array<[number, number]> = [
-  [200, 400],
-  [250, 390],
-  [314, 402],
+  [190, 240],
+  [178, 255],
+  [165, 269],
 ]
 
 export function routeMeters(): number {

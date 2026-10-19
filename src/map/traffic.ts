@@ -15,19 +15,17 @@ export const INITIAL_UNITS: Unit[] = [
 ]
 
 export const FIRE_PATH: Array<[number, number]> = [
-  [46, 612],
-  [58, 500],
-  [52, 390],
-  [46, 290],
-  [50, 248],
+  [86, 300],
+  [82, 220],
+  [88, 155],
+  [94, 110],
 ]
 
 export const MEDIC_PATH: Array<[number, number]> = [
-  [72, 620],
-  [86, 510],
-  [78, 400],
-  [70, 300],
-  [74, 256],
+  [104, 312],
+  [100, 232],
+  [106, 165],
+  [112, 118],
 ]
 
 const PLANE_SPEED = 0.62
@@ -63,8 +61,8 @@ export function stepUnits(units: Unit[], dt: number): Unit[] {
 }
 
 export function planeOffset(id: UnitId, t: number): { x: number; y: number } {
-  if (id === 'plane-2') return { x: 246 + t * 230, y: 437 }
-  return { x: 30 + t * 320, y: 238 }
+  if (id === 'plane-2') return { x: t * 100, y: 0 }
+  return { x: t * 240, y: 0 }
 }
 
 export function poseOnPath(points: Array<[number, number]>, t: number): { x: number; y: number; rot: number } {

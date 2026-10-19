@@ -1,10 +1,12 @@
 # ThroughAir
 
-A portrait map of Cleveland Hopkins. The lit walk runs from TSA North through the main terminal and food court to Concourse A: 650 meters, about 9 minutes. Concourse D is closed.
+A portrait map of Cleveland Hopkins, laid out like the terminal directions screen. The walk from TSA North through the main terminal and food court to Concourse A is 650 meters, about 9 minutes. Concourse D is closed.
 
-Drag to pan. Scroll or pinch to zoom. Tap A, B, or C to center that concourse, and tap the same letter again to zoom out. Double-tap the pavement to reset.
+The sheet switches Depart, Arrive, and Connect, and the Directions, Pass Time, and Airlines tabs. Go walks that route. U and L switch the upper concourses and the lower baggage level. Drag to pan. Scroll or pinch to zoom. Tap A, B, or C to center that concourse, and tap the same letter again to zoom out. Double-tap the map to reset.
 
-Tap a plane to send it off the runway. Tap the fire truck or the ambulance at Rescue to send it up to the runway and back.
+Tap a plane to send it off the runway. On the upper level, tap the fire truck or the ambulance to send it up the service road and back.
+
+Aerial imagery © Esri.
 
 ## Run
 
