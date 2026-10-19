@@ -1,5 +1,17 @@
-import { useRef, useState, type PointerEvent, type WheelEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
 import { FLOW, FLOW_B, FLOW_C, samples } from '../map/route'
+import {
+  FIRE_PATH,
+  INITIAL_UNITS,
+  MEDIC_PATH,
+  isUnitId,
+  planeOffset,
+  poseOnPath,
+  sendUnit,
+  stepUnits,
+  type Unit,
+  type UnitId,
+} from '../map/traffic'
 
 const VB_W = 390
 const VB_H = 700
@@ -33,11 +45,33 @@ const CROWD = [...dots(FLOW, 34, 0), ...dots(FLOW_B, 10, 3), ...dots(FLOW_C, 9, 
 
 export function AirportMap() {
   const svgRef = useRef<SVGSVGElement>(null)
-  const drag = useRef<{ px: number; py: number; x: number; y: number; moved: number; badge: FocusId | null } | null>(null)
+  const drag = useRef<{
+    px: number
+    py: number
+    x: number
+    y: number
+    moved: number
+    badge: FocusId | null
+    dispatch: UnitId | null
+  } | null>(null)
   const lastTap = useRef(0)
   const [view, setView] = useState({ x: 0, y: 0, scale: 1 })
   const [focus, setFocus] = useState<FocusId>('all')
   const [animate, setAnimate] = useState(false)
+  const [units, setUnits] = useState<Unit[]>(INITIAL_UNITS)
+
+  useEffect(() => {
+    let frame = 0
+    let last = performance.now()
+    const loop = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000)
+      last = now
+      setUnits((prev) => stepUnits(prev, dt))
+      frame = requestAnimationFrame(loop)
+    }
+    frame = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(frame)
+  }, [])
 
   function clampView(next: { x: number; y: number; scale: number }) {
     const scale = Math.min(2.6, Math.max(1, next.scale))
@@ -66,6 +100,12 @@ export function AirportMap() {
     return null
   }
 
+  function dispatchAt(target: EventTarget | null): UnitId | null {
+    if (!(target instanceof Element)) return null
+    const id = target.closest('[data-dispatch]')?.getAttribute('data-dispatch') ?? null
+    return isUnitId(id) ? id : null
+  }
+
   function onPointerDown(event: PointerEvent<SVGSVGElement>) {
     if (event.button !== 0) return
     svgRef.current?.setPointerCapture(event.pointerId)
@@ -77,6 +117,7 @@ export function AirportMap() {
       y: view.y,
       moved: 0,
       badge: badgeAt(event.target),
+      dispatch: dispatchAt(event.target),
     }
   }
 
@@ -100,6 +141,11 @@ export function AirportMap() {
     const active = drag.current
     drag.current = null
     if (!active || active.moved > 8) return
+    if (active.dispatch) {
+      lastTap.current = 0
+      setUnits((prev) => sendUnit(prev, active.dispatch as UnitId))
+      return
+    }
     if (active.badge && active.badge !== 'all') {
       lastTap.current = 0
       centerOn(active.badge)
@@ -147,7 +193,7 @@ export function AirportMap() {
         className="airport-map"
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         role="img"
-        aria-label="Cleveland Hopkins terminal map. The lit path walks from TSA North through the main terminal and food court to Concourse A. Concourse D is closed."
+        aria-label="Cleveland Hopkins terminal map. Tap a plane to send it off the runway. Tap the fire truck or ambulance to send it out. The lit path walks from TSA North to Concourse A."
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -159,7 +205,7 @@ export function AirportMap() {
           style={{ transition: animate ? 'transform 280ms ease' : 'none' }}
           transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}
         >
-          <MapArt focus={focus} />
+          <MapArt focus={focus} units={units} />
         </g>
       </svg>
       <div className="scale" aria-hidden="true">
@@ -170,7 +216,7 @@ export function AirportMap() {
   )
 }
 
-function MapArt({ focus }: { focus: FocusId }) {
+function MapArt({ focus, units }: { focus: FocusId; units: Unit[] }) {
   return (
     <>
       <defs>
@@ -205,10 +251,12 @@ function MapArt({ focus }: { focus: FocusId }) {
       <g transform="rotate(-16 120 250)">
         <rect x="10" y="230" width="250" height="16" rx="4" fill="#2c3840" />
         <line x1="24" y1="238" x2="240" y2="238" stroke="#d9d3b0" strokeWidth="1.4" strokeDasharray="12 10" />
+        <RunwayPlane unit={units.find((item) => item.id === 'plane-1')} />
       </g>
       <g transform="rotate(8 300 480)">
         <rect x="230" y="430" width="180" height="14" rx="4" fill="#2c3840" />
         <line x1="244" y1="437" x2="390" y2="437" stroke="#d9d3b0" strokeWidth="1.2" strokeDasharray="10 9" />
+        <RunwayPlane unit={units.find((item) => item.id === 'plane-2')} />
       </g>
 
       <g opacity="0.55">
@@ -296,6 +344,12 @@ function MapArt({ focus }: { focus: FocusId }) {
         Concourse A
       </text>
 
+      <Rescue unit={units.find((item) => item.id === 'fire')} path={FIRE_PATH} kind="fire" label="Send the fire truck" />
+      <Rescue unit={units.find((item) => item.id === 'medic')} path={MEDIC_PATH} kind="medic" label="Send the ambulance" />
+      <text x="58" y="642" textAnchor="middle" className="place-quiet">
+        Rescue
+      </text>
+
       <Badge x={196} y={148} letter="A" fill="#3c7dff" active={focus === 'A'} label="Center concourse A" />
       <Badge x={86} y={312} letter="B" fill="#8e99a8" active={focus === 'B'} label="Center concourse B" />
       <Badge x={314} y={402} letter="C" fill="#c084fc" active={focus === 'C'} label="Center concourse C" />
@@ -326,6 +380,83 @@ function Badge({
       <text x={x} y={y + 5} textAnchor="middle" className="badge-letter">
         {letter}
       </text>
+    </g>
+  )
+}
+
+function RunwayPlane({ unit }: { unit: Unit | undefined }) {
+  if (!unit || unit.mode === 'away') return null
+  const at = planeOffset(unit.id, unit.t)
+  return (
+    <g
+      data-dispatch={unit.id}
+      data-mode={unit.mode}
+      data-progress={unit.t.toFixed(3)}
+      transform={`translate(${at.x} ${at.y})`}
+      style={{ cursor: 'pointer' }}
+      role="button"
+      aria-label="Send this plane off the runway"
+    >
+      <circle r="14" fill="transparent" />
+      <path
+        transform="rotate(90)"
+        d="M0 -16 L2.4 -4 L18 -1 L2.4 2 L0 15 L-2.4 2 L-18 -1 L-2.4 -4 Z"
+        fill="#f5f8fc"
+        stroke="#8ea0b4"
+        strokeWidth="0.7"
+      />
+    </g>
+  )
+}
+
+function Rescue({
+  unit,
+  path,
+  kind,
+  label,
+}: {
+  unit: Unit | undefined
+  path: Array<[number, number]>
+  kind: 'fire' | 'medic'
+  label: string
+}) {
+  if (!unit) return null
+  const pose = poseOnPath(path, unit.t)
+  return (
+    <g
+      data-dispatch={unit.id}
+      data-mode={unit.mode}
+      data-progress={unit.t.toFixed(3)}
+      transform={`translate(${pose.x} ${pose.y}) rotate(${pose.rot})`}
+      style={{ cursor: 'pointer' }}
+      role="button"
+      aria-label={label}
+    >
+      <circle r="13" fill="transparent" />
+      {kind === 'fire' ? <FireTruck /> : <Ambulance />}
+    </g>
+  )
+}
+
+function FireTruck() {
+  return (
+    <g>
+      <rect x="-12" y="-5" width="16" height="10" rx="1.4" fill="#e23d3d" />
+      <rect x="3" y="-4.2" width="7" height="8.4" rx="1" fill="#f4f4f4" />
+      <circle cx="-6" cy="5" r="1.8" fill="#161616" />
+      <circle cx="5" cy="5" r="1.8" fill="#161616" />
+    </g>
+  )
+}
+
+function Ambulance() {
+  return (
+    <g>
+      <rect x="-12" y="-5" width="20" height="10" rx="1.4" fill="#f7f7f7" stroke="#d0d5dc" strokeWidth="0.4" />
+      <rect x="-12" y="-1.1" width="20" height="2.2" fill="#e23d3d" />
+      <path d="M-2 -3.2 h2.2 v-1.6 h1.6 v1.6 h2.2 v1.6 h-2.2 v1.6 h-1.6 v-1.6 h-2.2 z" fill="#1f9d57" />
+      <circle cx="-6" cy="5" r="1.8" fill="#161616" />
+      <circle cx="6" cy="5" r="1.8" fill="#161616" />
     </g>
   )
 }
