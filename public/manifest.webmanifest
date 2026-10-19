@@ -1,0 +1,19 @@
+{
+  "name": "ThroughAir",
+  "short_name": "ThroughAir",
+  "description": "Map of Cleveland Hopkins. Walk from TSA North to Concourse A.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c1016",
+  "theme_color": "#0c1016",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+*.local
+.vite
+coverage
+android/.gradle
+android/build
+android/app/build
+*.apk

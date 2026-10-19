@@ -1,0 +1,97 @@
+:root {
+  color-scheme: dark;
+  font-family: Roboto, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: #0c1014;
+  color: #e8eef4;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(900px 500px at 50% 0%, #1a2830, transparent 60%),
+    #0c1014;
+}
+
+.map-screen {
+  position: relative;
+  width: min(100vw, 420px);
+  height: min(100dvh, 900px);
+  overflow: hidden;
+  background: #12181c;
+  touch-action: none;
+  user-select: none;
+}
+
+@media (max-width: 520px) {
+  .map-screen {
+    width: 100vw;
+    height: 100dvh;
+  }
+}
+
+.airport-map {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+
+.airport-map:active { cursor: grabbing; }
+
+.closed-label {
+  fill: #e6c27a;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.place-label {
+  fill: #f2f6fb;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.place-quiet {
+  fill: #c5d0dc;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.badge-letter {
+  fill: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.scale {
+  position: absolute;
+  top: 18px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #f3f6fa;
+  font-size: 13px;
+  font-weight: 650;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.scale span {
+  display: block;
+  width: 72px;
+  height: 8px;
+  border-top: 2px solid #f3f6fa;
+  border-left: 2px solid #f3f6fa;
+  border-right: 2px solid #f3f6fa;
+}
